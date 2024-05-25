@@ -2,10 +2,15 @@
 
 import math
 import geojson as gj
-#from geopy.distance import distance as geo_distance
-from geopy.distance import geodesic
-from geopy.point import Point
 
+from geopy.distance import geodesic
+import geopy.point
+
+
+class Point(geopy.point.Point):
+    def __init__(self, latitude=None, longitude=None, altitude=None, label=''):
+        self.label = label
+        super().__init__()
 
 class Leg:
     def __init__(self, begin, bearing, distance, checkpoints=[]):
@@ -15,24 +20,23 @@ class Leg:
         self._checkpoints = checkpoints
 
     def begin(self):
-        return self._begin
+        return #self._begin
 
     def distance(self):
         return self._distance
 
     def bearing(self):
-        return self._bearing
+        return #self._bearing
 
     def end(self):
-        endpos = self.distance().destination(self.begin(), bearing=self.bearing())
+        endpos = self._distance.destination(self._begin, bearing=self._bearing)
         return endpos
         
     def geojson(self):
-        begin_point = self.begin()
-        end_point = self.end()
+        end = self.end()
         lines = gj.LineString([
-            (begin_point.longitude, begin_point.latitude),
-            (end_point.longitude, end_point.latitude),
+            (self._begin.longitude, self._begin.latitude),
+            (end.longitude, end.latitude),
         ])
         feature = gj.Feature(geometry=lines)
         feature_collection = gj.FeatureCollection( [feature] )
