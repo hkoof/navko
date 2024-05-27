@@ -24,18 +24,24 @@ class Leg:
         return endpos
 
     def e6b(self, true_airspeed, wind_direction, wind_speed):
-        # Thanks to https://aviation.stackexchange.com/questions/46741/
+        # Thanks: https://www.omnicalculator.com/physics/ground-speed
         #
         tt = math.radians(self.bearing)  
-        th = tt + math.asin(
-                (wind_speed / true_airspeed) *
-                math.sin(math.radians(wind_direction - self.bearing))
-            )
+        wd = math.radians(wind_direction + 180)
 
-        gs = (true_airspeed * math.sin(th) - wind_speed * math.sin(wind_direction)) \
-                / math.sin(tt)
+        wca = math.asin( (wind_speed / true_airspeed) * math.sin(wd - tt) )
+        wind_correction_angle = math.degrees(wca)
+        
+        ground_speed = math.sqrt(
+                math.pow(true_airspeed, 2) + math.pow(wind_speed, 2) -
+                (
+                    2 * true_airspeed * wind_speed * math.cos(tt)
+                    # -wd + wca
+                    - wind_direction + wind_correction_angle
+                )
+             )
 
-        return ( math.degrees(th) % 360, gs, )
+        return ( math.degrees(wca) % 360, ground_speed, )
 
     def geojson(self):
         end = self.end()
@@ -50,7 +56,7 @@ class Leg:
 def main():
     begin = (53.088, 6.0804,)
     leg1 = Leg(Point(begin), 212.0, 38.0)
-    th, gs = leg1.e6b(100, 200, 20)
+    th, gs = leg1.e6b(100, 212, 20)
     print("th =", th)
     print("gs =", gs)
     #print(leg1.geojson())
