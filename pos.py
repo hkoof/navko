@@ -35,9 +35,7 @@ class Leg:
         ground_speed = math.sqrt(
                 math.pow(true_airspeed, 2) + math.pow(wind_speed, 2) -
                 (
-                    2 * true_airspeed * wind_speed * math.cos(tt)
-                    # -wd + wca
-                    - wind_direction + wind_correction_angle
+                    2 * true_airspeed * wind_speed * math.cos(tt - wd + wca)
                 )
              )
 
