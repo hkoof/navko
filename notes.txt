@@ -1,0 +1,9 @@
+validation route.yaml
+
+- "start" has an optional name (default name is "START")
+- First checkpoint needs a true_heading ("th" also accepted)
+- Either "route" or the first checkpoint needs an altitude.
+- route has optional attribute "true_airspeed" (also accepted: "tas")
+- route has optional attribute "fuel_consumption"
+- checkpoints all have a "name" and "distance"
+
