@@ -41,7 +41,8 @@ def main():
                     description = 'E6B deluxe',)
     parser.add_argument('route_filename')
     args = parser.parse_args()
-    routes_data = yaml.safe_load(open(args.route_filename))
+    routes_data = yaml.load(open(args.route_filename), Loader=yaml.BaseLoader)
+    print(routes_data )
     routes = list()
     for route_data in routes_data:
         try:
