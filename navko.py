@@ -18,7 +18,7 @@ class Point(BaseModel):
 
 class Vector(BaseModel):
     name: str
-    true_heading: Annotated[int, Field(gt=0, le=360)]
+    true_heading: Annotated[int, Field(gt=0, lt=360)]
     distance: float
     altitude: int = Field(default=None)
 
@@ -42,7 +42,6 @@ def main():
     parser.add_argument('route_filename')
     args = parser.parse_args()
     routes_data = yaml.load(open(args.route_filename), Loader=yaml.BaseLoader)
-    print(routes_data )
     routes = list()
     for route_data in routes_data:
         try:
