@@ -18,7 +18,7 @@ class Point(BaseModel):
 
 class Vector(BaseModel):
     name: str
-    true_heading: Annotated[int, Field(gt=0, lt=360)]
+    true_heading: Annotated[int, Field(gt=0, lt=360, default=None)]
     distance: float
     altitude: int = Field(default=None)
 
