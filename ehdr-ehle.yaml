@@ -1,6 +1,5 @@
 ---
-route:
-  title: EHDR to EHLE
+- title: EHDR to EHLE
   altitude: 2500
   start: 
     name: A7 Drachten West

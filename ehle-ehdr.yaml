@@ -1,6 +1,5 @@
 ---
-route:
-  title: EHLE to EHDR
+- title: EHLE to EHDR
   tas: 100
   altitude: 1000
   start: 
