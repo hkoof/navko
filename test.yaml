@@ -1,0 +1,15 @@
+---
+- title: EHLE to EHDR
+  start: 
+    name: Harderwijk
+    latitude: 52.37234
+    longitude: 5.635674
+    altitude: 1000
+  checkpoints:
+    - name: Elburg
+      distance: 9
+      true_track: 250
+      altitude: 1500
+    - name: A7 Drachten West
+      latitude: 53.088
+      longitude: 6.0804
