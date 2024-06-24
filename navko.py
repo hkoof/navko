@@ -28,6 +28,15 @@ class Point(BaseModel):
     longitude: float
     altitude: int = Field(default=None)
 
+    @staticmethod
+    def DMS(coordinate):
+        degrees = math.floor(coordinate)
+        rest = abs(coordinate) - degrees
+        minutes = math.floor(60 * rest)
+        rest -= 60 * minutes
+        seconds = round(3600 * rest)
+        return (degrees, minutes, seconds)
+
     def get_vector(self, origin):
         geodict = Geodesic.WGS84.Inverse(
                 origin.latitude,
@@ -42,6 +51,17 @@ class Point(BaseModel):
                 self.altitude,
                 )
         return vector
+
+    def __str__(self):
+        deg_lat, min_lat, sec_lat = self.DMS(latitude)
+        hemi_lat = 'N' if deg_lat > 0 else 'S'
+        deg_lat = abs(deg_lat)
+
+        deg_lon, min_lon, sec_lon = self.DMS(longitude)
+        hemi_lon = 'E' if deg_lon > 0 else 'W'
+        deg_lon = abs(deg_lon)
+
+        return f'{deg_lat}\N{DEGREE SIGN}{min_lat}\N{PRIME}{sec_lat}\N{DOUBLE PRIME}{hemi_lat} {deg_lon}\N{DEGREE SIGN}{min_lon}\N{PRIME}{sec_lon}\N{DOUBLE PRIME}{hemi_lon}'
 
 
 class Vector(BaseModel):
@@ -87,7 +107,7 @@ class Route(BaseModel):
         print()
 
     @staticmethod
-    def e6b(true_track, true_airspeed, wind_direction, wind_speed):
+    def e6b(true_track, true_airspeed, wind_direction, wind_speed):   #FIXME
         tt = math.radians(true_track)
         wd = math.radians(wind_direction + 180)
 
