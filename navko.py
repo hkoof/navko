@@ -13,8 +13,10 @@ from pydantic import ValidationError
 
 import geojson as gj
 
-from geopy.distance import geodesic
-import geopy.point
+from geographiclib.geodesic import Geodesic
+
+# from geopy.distance import geodesic
+# import geopy.point
 
 
 # class Point:
@@ -27,6 +29,19 @@ class Point(BaseModel):
     altitude: int = Field(default=None)
 
     def get_vector(self, origin):
+        geodict = Geodesic.WGS84.Inverse(
+                origin.latitude,
+                origin.longitude,
+                self.latitude,
+                self.longitude,
+                )
+        vector = Vector(
+                self.name,
+                geodict['azi1'],
+                geodict['s12'],
+                self.altitude,
+                )
+        return vector
 
 
 class Vector(BaseModel):
@@ -36,9 +51,21 @@ class Vector(BaseModel):
     altitude: int = Field(default=None)
 
     def get_point(self, origin):
-        geodesic_dist = geodesic(nautical=self.distance)
-        end = geodesic_dist.destination(origin, bearing=self.true_track)
-        return end
+        distance_meters = self.distance * 1.852
+        geodict = Geodesic.WGS84.Direct(
+                origin.latitude,
+                origin.longitude,
+                self.true_track,
+                distance_meters,
+                )
+        point = Point(
+                self.name,
+                geodict['lat2'],
+                geodict['lon2'],
+                self.altitude,
+                )
+        return point
+
 
 class Route(BaseModel):
     title: str
@@ -57,6 +84,7 @@ class Route(BaseModel):
         super().__init__(*args, **kwargs)
         for checkpoint in self.checkpoints:
             print("DBG", checkpoint)
+        print()
 
     @staticmethod
     def e6b(true_track, true_airspeed, wind_direction, wind_speed):
