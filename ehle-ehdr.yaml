@@ -1,0 +1,23 @@
+---
+- title: EHLE to EHDR
+  tas: 100
+  altitude: 1000
+  start:
+    name: Harderwijk
+    latitude: 52.37234
+    longitude: 5.635674
+  checkpoints:
+    - name: Elburg
+      distance: 9
+      true_track: 045
+      altitude: 1500
+    - name: Kampen
+      distance: 6
+    - name: Meppel
+      distance: 12
+      altitude: 2500
+    - name: Steenwijk snelweg
+      distance: 7
+      true_track: 354
+    - name: A7 Drachten
+      distance: 18

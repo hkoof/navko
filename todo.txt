@@ -1,0 +1,2 @@
+fixme: longitude of thousands is accepted, but choked on. custom validator needed for coordinates
+

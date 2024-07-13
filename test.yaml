@@ -1,0 +1,21 @@
+---
+- title: Drachten to Oostwold
+  start: 
+    name: EHDR ARP
+    latitude: 53.11806
+    longitude: 6.12917 
+    altitude: 1000
+  checkpoints:
+    - name: Zuidwolde
+      latitude: 53.258
+      longitude: 6.589 
+      altitude: 1500
+    - name: VECTOR
+      distance: 10
+      true_track: 320
+    - name: Noordpolderzijl
+      latitude: 53.433  
+      longitude: 6.582
+    - name: Oostwold
+      latitude: 53.20861
+      longitude: 7.03278
