@@ -1,2 +1,12 @@
 fixme: longitude of thousands is accepted, but choked on. custom validator needed for coordinates
 
+More than one route in a single yaml results in invalid geojson (spec seems not
+to support this). Fix to handle appropriately
+
+airplane profiles
+
+Attributes to add to navlog(?):
+  - MOCA
+  - CH  (compass heading) (requires airplane profile support)
+  - DEV (compass deviation)
+  - CF  (Corrections factor: 60 / distance)

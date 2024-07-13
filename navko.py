@@ -71,7 +71,7 @@ class Point(BaseModel):
         hemi_lon = 'E' if deg_lon > 0 else 'W'
         deg_lon = abs(deg_lon)
 
-        return f'{deg_lat}\N{DEGREE SIGN}{min_lat}\N{PRIME}{sec_lat:.1f}\N{DOUBLE PRIME}{hemi_lat} {deg_lon}\N{DEGREE SIGN}{min_lon}\N{PRIME}{sec_lon:.1f}\N{DOUBLE PRIME}{hemi_lon}'
+        return f'{self.name}: {deg_lat}\N{DEGREE SIGN}{min_lat}\N{PRIME}{sec_lat:.1f}\N{DOUBLE PRIME}{hemi_lat} {deg_lon}\N{DEGREE SIGN}{min_lon}\N{PRIME}{sec_lon:.1f}\N{DOUBLE PRIME}{hemi_lon}'
 
 
 class Vector(BaseModel):
@@ -98,7 +98,7 @@ class Vector(BaseModel):
     def __str__(self):
         if not self.true_track:
             return ''
-        return f'{self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
+        return f'{self.name}: {self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
 
 
 class Route(BaseModel):
@@ -142,18 +142,17 @@ class Route(BaseModel):
         return ( math.degrees(wca) % 360, ground_speed, )
 
     def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
-        print ("DBG:", wind_direction, wind_speed)
 
-        var = variation
-
-        route_altitude = self.altitude  # TODO
+        #route_altitude = self.altitude  # TODO
         tas = ias                       # TODO
+        var = variation        # TODO
 
         leg_dist_acc = 0
         leg_time_acc = 0
         current_point = self.start
 
         for checkpoint in self.checkpoints:
+            print ("DBG", checkpoint)
             if isinstance(checkpoint, Vector):
                 leg_dist = checkpoint.distance
                 tt = checkpoint.true_track
@@ -163,7 +162,7 @@ class Route(BaseModel):
             leg_dist_acc += leg_dist
 
             name = checkpoint.name
-            altitude = checkpoint.altitude if checkpoint.altitiude else route_altitude
+            #altitude = checkpoint.altitude if checkpoint.altitiude else route_altitude # TODO
 
             wca, gs = self.e6b(tt, tas, wind_direction, wind_speed)
             th = tt + wca
@@ -277,7 +276,7 @@ def main():
     if args.navigation_log:
         for route in routes:
             wind_dir, wind_spd = args.wind if args.wind else (0, 0)
-            navlog = route.navigation_log(ias, wind_dir, wind_spd)
+            navlog = route.navigation_log(args.ias, wind_dir, wind_spd)
 
 
 if __name__ == "__main__":
