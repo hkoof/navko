@@ -112,10 +112,28 @@ class Vector(CheckPoint):
         return f'{self.name}: {self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
 
 class NavigationLog:
-    pass
+    def __str__(self):
+        s = f'IAS: {self.ias:<14} Variation: {self.var:<14} Wind: {self.wind_direction}{self.wind_speed}KT\n'
+        s += '-------------------------------------------------------------\n'
+        s += f'Leg Acc  ETO ATO {"Checkpoint":34} MH  TH  WCA TT  TAS GS  Leg Acc\n'
+        s += '-------------------------------------------------------------\n'
+
+        for leg in self.legs:
+            s = s + str(leg)
+
+        s += '-------------------------------------------------------------\n'
+        return s
+
 
 class Leg:
-    pass
+    def __str__(self):
+        s =  f'{self.time:>3}{self.time_acc:>4}'
+        s += f'{"":>5}{"":>5}'  # ETO ATO
+        s += f'{self.name:<34}'
+        s += f'{self.mh:>4}'
+
+        return s + '\n'
+
 
 class Route(BaseModel):
     title: str
@@ -169,13 +187,15 @@ class Route(BaseModel):
                 )
              )
 
-        return ( math.degrees(wca) % 360, ground_speed, )
+        return ( round(math.degrees(wca)) % 360, round(ground_speed), )
 
     def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
         navlog = NavigationLog()
 
         # navlog global:
         #
+        navlog.wind_direction = wind_direction 
+        navlog.wind_speed = wind_speed
         navlog.var = variation
         navlog.ias = ias
 
@@ -191,8 +211,6 @@ class Route(BaseModel):
         time_acc = 0
         current_point = self.start
         for checkpoint in self.checkpoints:
-            print ("DBG", checkpoint)
-
             leg = Leg()
 
             leg.dist = checkpoint.get_distance()
@@ -206,7 +224,8 @@ class Route(BaseModel):
             leg.tas = ias  # TODO
 
             leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
-            leg.th = leg.tt + leg.wca
+            print("WCA", leg.wca)
+            leg.th = (leg.tt + leg.wca) % 360
             leg.mh = leg.th - navlog.var
 
             leg.time = math.floor(60 * leg.dist / leg.tas)
@@ -215,6 +234,8 @@ class Route(BaseModel):
 
             navlog.legs.append(leg)
             current_point = checkpoint
+
+        return navlog
 
 
     def geojson(self):
@@ -308,6 +329,7 @@ def main():
         for route in routes:
             wind_dir, wind_spd = args.wind if args.wind else (0, 0)
             navlog = route.navigation_log(args.ias, wind_dir, wind_spd)
+            print(navlog)
 
 
 if __name__ == "__main__":
