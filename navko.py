@@ -111,6 +111,11 @@ class Vector(CheckPoint):
             return ''
         return f'{self.name}: {self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
 
+class NavigationLog:
+    pass
+
+class Leg:
+    pass
 
 class Route(BaseModel):
     title: str
@@ -138,7 +143,7 @@ class Route(BaseModel):
                     tt = checkpoint.true_track
                 else:
                     checkpoint.true_track = tt
-                
+
                 point = checkpoint.get_point(current_point)
                 checkpoint._latitude = point.latitude
                 checkpoint._longitude = point.longitude
@@ -167,38 +172,49 @@ class Route(BaseModel):
         return ( math.degrees(wca) % 360, ground_speed, )
 
     def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
+        navlog = NavigationLog()
 
+        # navlog global:
+        #
+        navlog.var = variation
+        navlog.ias = ias
+
+        # navlog defaults for legs
+        #
         #route_altitude = self.altitude  # TODO
-        tas = ias                       # TODO
-        var = variation        # TODO
 
-        leg_dist_acc = 0
-        leg_time_acc = 0
+        navlog.legs = list()
+        navlog.leg_dist_acc = 0
+        navlog.leg_time_acc = 0
+
+        dist_acc = 0
+        time_acc = 0
         current_point = self.start
-
         for checkpoint in self.checkpoints:
             print ("DBG", checkpoint)
-            if isinstance(checkpoint, Vector):
-                leg_dist = checkpoint.distance
-                tt = checkpoint.true_track
-            else:
-                leg_dist = checkpoint.get_vector(current_point).distance
-                tt = checkpoint.get_vector(current_point).true_track
-            leg_dist_acc += leg_dist
 
-            name = checkpoint.name
+            leg = Leg()
+
+            leg.dist = checkpoint.get_distance()
+            leg.tt = checkpoint.get_true_track()
+            dist_acc += leg.dist
+            leg.dist_acc = dist_acc
+
+            leg.name = checkpoint.name
             #altitude = checkpoint.altitude if checkpoint.altitiude else route_altitude # TODO
 
-            wca, gs = self.e6b(tt, tas, wind_direction, wind_speed)
-            th = tt + wca
-            mh = th - var
+            leg.tas = ias  # TODO
 
-            leg_time = math.floor(60 * leg_dist / tas)
-            leg_time_acc += leg_time
+            leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
+            leg.th = leg.tt + leg.wca
+            leg.mh = leg.th - navlog.var
 
+            leg.time = math.floor(60 * leg.dist / leg.tas)
+            time_acc += leg.time
+            leg.time_acc = time_acc
+
+            navlog.legs.append(leg)
             current_point = checkpoint
-
-
 
 
     def geojson(self):
