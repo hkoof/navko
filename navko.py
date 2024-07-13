@@ -14,14 +14,10 @@ import geojson as gj
 
 from geographiclib.geodesic import Geodesic
 
-
-# class Point:
-# Not to be confused with geopy.point.Point which is also used here
+# Base class for different kind of checkpoints
 #
-class Point(BaseModel):
+class CheckPoint(BaseModel):
     name: str
-    latitude: float
-    longitude: float
     altitude: int = Field(default=None)
 
     @staticmethod
@@ -39,6 +35,13 @@ class Point(BaseModel):
         seconds = 60 * rest
         return (degrees, minutes, seconds)
 
+
+# class Point:
+#
+class Point(CheckPoint):
+    latitude: float
+    longitude: float
+
     def get_vector(self, origin):
         '''Get Vector object from origin to self
            Args:
@@ -47,8 +50,8 @@ class Point(BaseModel):
              Vector
         '''
         geodict = Geodesic.WGS84.Inverse(
-                origin.latitude,
-                origin.longitude,
+                origin.get_latitude(),
+                origin.get_longitude(),
                 self.latitude,
                 self.longitude,
                 )
@@ -62,6 +65,11 @@ class Point(BaseModel):
                 )
         return vector
 
+    def get_latitude(self): return self.latitude
+    def get_longitude(self): return self.longitude
+    def get_true_track(self): return self._true_track
+    def get_distance(self): return self._distance
+
     def __str__(self):
         deg_lat, min_lat, sec_lat = self.DMS(self.latitude)
         hemi_lat = 'N' if deg_lat > 0 else 'S'
@@ -74,17 +82,15 @@ class Point(BaseModel):
         return f'{self.name}: {deg_lat}\N{DEGREE SIGN}{min_lat}\N{PRIME}{sec_lat:.1f}\N{DOUBLE PRIME}{hemi_lat} {deg_lon}\N{DEGREE SIGN}{min_lon}\N{PRIME}{sec_lon:.1f}\N{DOUBLE PRIME}{hemi_lon}'
 
 
-class Vector(BaseModel):
-    name: str
+class Vector(CheckPoint):
     true_track: Annotated[int, Field(gt=0, lt=360, default=None)]
     distance: float
-    altitude: int = Field(default=None)
 
     def get_point(self, origin):
         distance_meters = self.distance * 1852
         geodict = Geodesic.WGS84.Direct(
-                origin.latitude,
-                origin.longitude,
+                origin.get_latitude(),
+                origin.get_longitude(),
                 self.true_track,
                 distance_meters,
             )
@@ -94,6 +100,11 @@ class Vector(BaseModel):
                 longitude=geodict['lon2'],
             )
         return point
+
+    def get_latitude(self): return self._latitude
+    def get_longitude(self): return self._longitude
+    def get_true_track(self): return self.true_track
+    def get_distance(self): return self.distance
 
     def __str__(self):
         if not self.true_track:
@@ -117,12 +128,26 @@ class Route(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         tt = self.checkpoints[0]  # assuming at least one, raising exception is correct
+
+        # Resolve Vector attributes for Points and the other way around.
+        #
+        current_point = self.start
         for checkpoint in self.checkpoints:
             if isinstance(checkpoint, Vector):
                 if checkpoint.true_track:
                     tt = checkpoint.true_track
                 else:
                     checkpoint.true_track = tt
+                
+                point = checkpoint.get_point(current_point)
+                checkpoint._latitude = point.latitude
+                checkpoint._longitude = point.longitude
+            else:
+                vector = checkpoint.get_vector(current_point)
+                checkpoint._true_track = vector.true_track
+                checkpoint._distance = vector.distance
+
+            current_point = checkpoint
 
     @staticmethod
     def e6b(true_track, true_airspeed, wind_direction, wind_speed):
@@ -167,7 +192,7 @@ class Route(BaseModel):
             wca, gs = self.e6b(tt, tas, wind_direction, wind_speed)
             th = tt + wca
             mh = th - var
-            
+
             leg_time = math.floor(60 * leg_dist / tas)
             leg_time_acc += leg_time
 
@@ -179,42 +204,32 @@ class Route(BaseModel):
     def geojson(self):
         def append_line_feature(begin, end):
             line = gj.LineString([
-                (begin.longitude, begin.latitude),
-                (end.longitude, end.latitude),
+                (begin.get_longitude(), begin.get_latitude()),
+                (end.get_longitude(), end.get_latitude()),
             ])
             features.append(gj.Feature(geometry=line))
 
         points = list()
         features = list()
         current_point = leg_begin = self.start
-        if isinstance(self.checkpoints[0], Vector):
-            current_tt = self.checkpoints[0].true_track
-        else:
-            current_tt = self.checkpoints[0].get_vector(self.start).true_track
+        current_tt = self.checkpoints[0].get_true_track()
 
         for checkpoint in self.checkpoints:
-            if isinstance(checkpoint, Vector):
-                point = checkpoint.get_point(current_point)
-                tt = checkpoint.true_track
-            else:   # assumes instance is always Point instance from here
-                point = checkpoint
-                tt = checkpoint.get_vector(current_point).true_track
-
-            points.append(point)
-
+            tt = checkpoint.get_true_track()
             if tt != current_tt:
                 append_line_feature(leg_begin, current_point)
                 current_tt = tt
                 leg_begin = current_point
 
-            current_point = point
+            points.append(checkpoint)
+            current_point = checkpoint
 
         append_line_feature(leg_begin, current_point)
         features.append(gj.Feature(geometry=gj.Point( (self.start.longitude, self.start.latitude,) )))
 
         for point in points:
             feature = gj.Feature(
-                    geometry=gj.Point((point.longitude, point.latitude,)),
+                    geometry=gj.Point((point.get_longitude(), point.get_latitude(),)),
                     properties = {
                         'name': point.name,
                     }
