@@ -1,0 +1,21 @@
+---
+- title: EHDR to EHLE
+  altitude: 2500
+  start:
+    name: A7 Drachten West
+    latitude: 53.088
+    longitude: 6.0804
+  # Alternatively, notam format:
+  # start: 530515N 0060446E
+  checkpoints:
+    - name: Heerenveen snelweg
+      distance: 9.5
+      true_track: 212
+    - name: Snelweg naar Emmeloord
+      distance: 12.0
+      altitude: 1500
+    - name: Urk
+      distance: 9.0
+    - name: MIKE reporting point CTR entry
+      distance: 7.5
+
