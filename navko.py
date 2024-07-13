@@ -9,14 +9,10 @@ import yaml
 from typing import Union, Annotated, Optional
 from pydantic import BaseModel, Field, Discriminator, Tag
 from pydantic import ValidationError
-#PositiveInt, TypeAdapter
 
 import geojson as gj
 
 from geographiclib.geodesic import Geodesic
-
-# from geopy.distance import geodesic
-# import geopy.point
 
 
 # class Point:
@@ -129,7 +125,7 @@ class Route(BaseModel):
                     checkpoint.true_track = tt
 
     @staticmethod
-    def e6b(true_track, true_airspeed, wind_direction, wind_speed):   #FIXME
+    def e6b(true_track, true_airspeed, wind_direction, wind_speed):
         tt = math.radians(true_track)
         wd = math.radians(wind_direction + 180)
 
@@ -144,6 +140,42 @@ class Route(BaseModel):
              )
 
         return ( math.degrees(wca) % 360, ground_speed, )
+
+    def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
+        print ("DBG:", wind_direction, wind_speed)
+
+        var = variation
+
+        route_altitude = self.altitude  # TODO
+        tas = ias                       # TODO
+
+        leg_dist_acc = 0
+        leg_time_acc = 0
+        current_point = self.start
+
+        for checkpoint in self.checkpoints:
+            if isinstance(checkpoint, Vector):
+                leg_dist = checkpoint.distance
+                tt = checkpoint.true_track
+            else:
+                leg_dist = checkpoint.get_vector(current_point).distance
+                tt = checkpoint.get_vector(current_point).true_track
+            leg_dist_acc += leg_dist
+
+            name = checkpoint.name
+            altitude = checkpoint.altitude if checkpoint.altitiude else route_altitude
+
+            wca, gs = self.e6b(tt, tas, wind_direction, wind_speed)
+            th = tt + wca
+            mh = th - var
+            
+            leg_time = math.floor(60 * leg_dist / tas)
+            leg_time_acc += leg_time
+
+            current_point = checkpoint
+
+
+
 
     def geojson(self):
         def append_line_feature(begin, end):
@@ -201,12 +233,30 @@ def main():
     parser.add_argument('route_filename')
     parser.add_argument(
             '--geojson',
-            action='store_true',
-            help='Output route in geojson format',
+            help='Dump route to geojson file',
             )
     parser.add_argument(
-            '--output',
-            help='Output to file instread of stdout',
+            '-n',
+            '--navigation-log',
+            action='store_true',
+            help='Create navigation log',
+            )
+    parser.add_argument(
+            '-s',
+            '--ias',
+            '--indicated-airspeed',
+            type=int,
+            default=100,
+            help='Specify indicated air speed',
+            )
+    parser.add_argument(
+            '-w',
+            '--wind',
+            nargs=2,
+            type=int,
+            default=(0, 0),
+            metavar=('DIRECTION', 'SPEED'),
+            help='Specify wind vector',
             )
     args = parser.parse_args()
 
@@ -220,13 +270,15 @@ def main():
             print(e)
 
     if args.geojson:
-        if args.output:
-            with open(args.output, 'w') as output:
-                for route in routes:
-                    print(route.geojson(), file=output)
-        else:
+        with open(args.geojson, 'w') as output:
             for route in routes:
-                print(route.geojson())
+                print(route.geojson(), file=output)
+
+    if args.navigation_log:
+        for route in routes:
+            wind_dir, wind_spd = args.wind if args.wind else (0, 0)
+            navlog = route.navigation_log(ias, wind_dir, wind_spd)
+
 
 if __name__ == "__main__":
     main()
