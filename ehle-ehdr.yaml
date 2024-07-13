@@ -18,6 +18,6 @@
       altitude: 2500
     - name: Steenwijk snelweg
       distance: 7
-      true_track: 354
+      true_track: 355
     - name: A7 Drachten
-      distance: 18
+      distance: 20.5
