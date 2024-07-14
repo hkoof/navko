@@ -113,24 +113,31 @@ class Vector(CheckPoint):
 
 class NavigationLog:
     def __str__(self):
-        s = f'IAS: {self.ias:<14} Variation: {self.var:<14} Wind: {self.wind_direction}{self.wind_speed}KT\n'
-        s += '-------------------------------------------------------------\n'
-        s += f'Leg Acc  ETO ATO {"Checkpoint":34} MH  TH  WCA TT  TAS GS  Leg Acc\n'
-        s += '-------------------------------------------------------------\n'
+        title  = f'IAS: {self.ias:<14} Variation: {self.var:<+14} Wind: {self.wind_direction}/{self.wind_speed} kt\n'
+        header = f'Leg Acc {"Checkpoint":<34} MH  TH  WCA TT  TAS  GS Leg Acc\n'
+        line = len(header) * '-' + '\n'
+        s = title + line + header + line 
 
         for leg in self.legs:
             s = s + str(leg)
 
-        s += '-------------------------------------------------------------\n'
+        s += line 
         return s
 
 
 class Leg:
     def __str__(self):
-        s =  f'{self.time:>3}{self.time_acc:>4}'
-        s += f'{"":>5}{"":>5}'  # ETO ATO
-        s += f'{self.name:<34}'
+        s =  f'{self.time:>3}'
+        s += f'{self.time_acc:>4}'
+        s += f' {self.name:<34}'
         s += f'{self.mh:>4}'
+        s += f'{self.th:>4}'
+        s += f'{self.wca:>+4d}'
+        s += f'{self.tt:>4}'
+        s += f'{self.tas:>4}'
+        s += f'{self.gs:>4}'
+        s += f'{self.time:>4}'
+        s += f'{self.time_acc:>4}'
 
         return s + '\n'
 
@@ -175,7 +182,8 @@ class Route(BaseModel):
     @staticmethod
     def e6b(true_track, true_airspeed, wind_direction, wind_speed):
         tt = math.radians(true_track)
-        wd = math.radians(wind_direction + 180)
+        #wd = math.radians(wind_direction + 180)
+        wd = math.radians(wind_direction)
 
         wca = math.asin( (wind_speed / true_airspeed) * math.sin(wd - tt) )
         wind_correction_angle = math.degrees(wca)
@@ -187,7 +195,11 @@ class Route(BaseModel):
                 )
              )
 
-        return ( round(math.degrees(wca)) % 360, round(ground_speed), )
+        wca_deg = round(math.degrees(wca))
+        if wca_deg > 180:
+            wca_deg = 360 - wca_deg
+
+        return ( wca_deg, round(ground_speed), )
 
     def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
         navlog = NavigationLog()
@@ -224,8 +236,7 @@ class Route(BaseModel):
             leg.tas = ias  # TODO
 
             leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
-            print("WCA", leg.wca)
-            leg.th = (leg.tt + leg.wca) % 360
+            leg.th = (leg.tt + leg.wca) #% 360
             leg.mh = leg.th - navlog.var
 
             leg.time = math.floor(60 * leg.dist / leg.tas)
@@ -328,7 +339,7 @@ def main():
     if args.navigation_log:
         for route in routes:
             wind_dir, wind_spd = args.wind if args.wind else (0, 0)
-            navlog = route.navigation_log(args.ias, wind_dir, wind_spd)
+            navlog = route.navigation_log(args.ias, wind_dir, wind_spd, 2)
             print(navlog)
 
 
