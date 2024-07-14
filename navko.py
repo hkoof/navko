@@ -136,8 +136,8 @@ class Leg:
         s += f'{self.tt:>4}'
         s += f'{self.tas:>4}'
         s += f'{self.gs:>4}'
-        s += f'{self.time:>4}'
-        s += f'{self.time_acc:>4}'
+        s += f'{self.dist:>4}'
+        s += f'{self.dist_acc:>4}'
 
         return s + '\n'
 
@@ -236,7 +236,7 @@ class Route(BaseModel):
             leg.tas = ias  # TODO
 
             leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
-            leg.th = (leg.tt + leg.wca) #% 360
+            leg.th = leg.tt + leg.wca
             leg.mh = leg.th - navlog.var
 
             leg.time = math.floor(60 * leg.dist / leg.tas)
