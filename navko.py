@@ -120,6 +120,26 @@ class Vector(CheckPoint):
 
 
 class NavigationLog:
+    def make_sparse(self):
+        '''Set selected values that are not different from the previous leg to None'''
+
+        last_vals = {
+            'tt': None,
+            'alt': None,
+            'tas': None,
+            'wca': None,
+            'th': None,
+            'mh': None,
+            'gs': None,
+        }
+
+        for leg in self.legs:
+            for attr in last_vals.keys():
+                if leg.__dict__[attr] == last_vals[attr]:
+                    leg.__dict__[attr] = None
+                else:
+                    last_vals[attr] = leg.__dict__[attr]
+
     def __str__(self):
         title  = (
             f'{self.title:<14}\n'
@@ -144,22 +164,25 @@ class NavigationLog:
 
 class Leg:
     def __str__(self):
-        return (
-            f'{self.time:>3}'
-            f'{self.time_acc:>4}'
-            f' {self.name:<30}'
-            f'{self.alt:>5}'
-            f'{self.mh:>4}'
-            f'{self.th:>4}'
-            f'{self.wca:>+4d}'
-            f'{self.tt:>4}'
-            f'{self.tas:>4}'
-            f'{self.gs:>4}'
-            f'{self.dist:>4.0f}'
-            f'{self.dist_acc:>4.0f}'
-            '\n'
-        )
+        s = str()
 
+        s += f'{self.time:>3}'
+        s += f'{self.time_acc:>4}'
+        s += f' {self.name:<30}'
+
+        s += f'{self.alt:>5}' if self.alt else f'{"":>5}'
+        s += f'{self.mh:>4}' if self.mh else f'{"":>4}'
+        s += f'{self.th:>4}' if self.th else f'{"":>4}'
+        s += f'{self.wca:>+4d}' if self.wca else f'{"":>4}'
+        s += f'{self.tt:>4}' if self.tt else f'{"":>4}'
+        s += f'{self.tas:>4}' if self.tas else f'{"":>4}'
+        s += f'{self.gs:>4}' if self.gs else f'{"":>4}'
+
+        s += f'{self.dist:>4.0f}'
+        s += f'{self.dist_acc:>4.0f}'
+        s += '\n'
+
+        return s
 
 class Route(BaseModel):
     title: str
@@ -247,6 +270,7 @@ class Route(BaseModel):
         dist_acc = 0
         time_acc = 0
         current_point = self.start
+        previous_leg = None
         for checkpoint in self.checkpoints:
             leg = Leg()
 
@@ -270,6 +294,7 @@ class Route(BaseModel):
 
             navlog.legs.append(leg)
             current_point = checkpoint
+            previous_leg = leg
 
         return navlog
 
@@ -345,6 +370,12 @@ def main():
             metavar=('DIRECTION', 'SPEED'),
             help='Specify wind vector',
             )
+    parser.add_argument(
+            '-r',
+            '--sparse',
+            action='store_true',
+            help='Skip leg attribute values that are the same as the previous leg',
+            )
     args = parser.parse_args()
 
     routes_data = yaml.load(open(args.route_filename), Loader=yaml.BaseLoader)
@@ -365,6 +396,8 @@ def main():
         for route in routes:
             wind_dir, wind_spd = args.wind if args.wind else (0, 0)
             navlog = route.navigation_log(args.ias, wind_dir, wind_spd, 2)
+            if args.sparse:
+                navlog.make_sparse()
             print(navlog)
 
 
