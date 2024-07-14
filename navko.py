@@ -177,6 +177,9 @@ class Route(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         tt = self.checkpoints[0]  # assuming at least one, raising exception is correct
+        alt = self.checkpoints[0].altitude
+        if alt == None:
+            alt = 1500
 
         # Resolve Vector attributes for Points and the other way around.
         #
@@ -187,6 +190,11 @@ class Route(BaseModel):
                     tt = checkpoint.true_track
                 else:
                     checkpoint.true_track = tt
+
+                if checkpoint.altitude:
+                    alt = checkpoint.altitude
+                else:
+                    checkpoint.altitude = alt
 
                 point = checkpoint.get_point(current_point)
                 checkpoint._latitude = point.latitude
@@ -201,7 +209,6 @@ class Route(BaseModel):
     @staticmethod
     def e6b(true_track, true_airspeed, wind_direction, wind_speed):
         tt = math.radians(true_track)
-        #wd = math.radians(wind_direction + 180)
         wd = math.radians(wind_direction)
 
         wca = math.asin( (wind_speed / true_airspeed) * math.sin(wd - tt) )
@@ -250,11 +257,7 @@ class Route(BaseModel):
 
             leg.name = checkpoint.name
 
-            if checkpoint.altitude:
-                leg.alt = checkpoint.altitude
-            else:
-                leg.alt = 1500
-
+            leg.alt = checkpoint.altitude
             leg.tas = checkpoint.true_airspeed(ias, leg.alt)
 
             leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
