@@ -35,6 +35,13 @@ class CheckPoint(BaseModel):
         seconds = 60 * rest
         return (degrees, minutes, seconds)
 
+    @staticmethod
+    def true_airspeed(ias, alt):
+        # Rule of thumb:
+        # Add about 2% to IAS for every 1000 ft altitude
+        # 
+        return round(ias + 0.02 * alt * ias / 1000)
+
 
 # class Point:
 #
@@ -111,12 +118,22 @@ class Vector(CheckPoint):
             return ''
         return f'{self.name}: {self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
 
+
 class NavigationLog:
     def __str__(self):
-        title  = f'IAS: {self.ias:<14} Variation: {self.var:<+14} Wind: {self.wind_direction}/{self.wind_speed} kt\n'
-        header = f'Leg Acc {"Checkpoint":<34} MH  TH  WCA TT  TAS  GS Leg Acc\n'
-        line = len(header) * '-' + '\n'
-        s = title + line + header + line 
+        title  = (
+            f'{self.title:<14}\n'
+            f'IAS: {self.ias:<14}'
+            f'Wind: {self.wind_direction}/{self.wind_speed} kt {"":<14}'
+            f'Variation: {self.var:<+14}'
+            '\n'
+        )
+        header = f'Leg Acc {"Checkpoint":<30} Alt  MH  TH  WCA TT  TAS  GS Leg Acc\n'
+
+        start  = f'  0   0 {self.start_name:<30}                                0   0\n'
+
+        line = '-' * (len(header) - 1) + '\n'
+        s = title + line + header  + line + start
 
         for leg in self.legs:
             s = s + str(leg)
@@ -127,19 +144,21 @@ class NavigationLog:
 
 class Leg:
     def __str__(self):
-        s =  f'{self.time:>3}'
-        s += f'{self.time_acc:>4}'
-        s += f' {self.name:<34}'
-        s += f'{self.mh:>4}'
-        s += f'{self.th:>4}'
-        s += f'{self.wca:>+4d}'
-        s += f'{self.tt:>4}'
-        s += f'{self.tas:>4}'
-        s += f'{self.gs:>4}'
-        s += f'{self.dist:>4}'
-        s += f'{self.dist_acc:>4}'
-
-        return s + '\n'
+        return (
+            f'{self.time:>3}'
+            f'{self.time_acc:>4}'
+            f' {self.name:<30}'
+            f'{self.alt:>5}'
+            f'{self.mh:>4}'
+            f'{self.th:>4}'
+            f'{self.wca:>+4d}'
+            f'{self.tt:>4}'
+            f'{self.tas:>4}'
+            f'{self.gs:>4}'
+            f'{self.dist:>4.0f}'
+            f'{self.dist_acc:>4.0f}'
+            '\n'
+        )
 
 
 class Route(BaseModel):
@@ -206,14 +225,13 @@ class Route(BaseModel):
 
         # navlog global:
         #
+        navlog.title = self.title 
         navlog.wind_direction = wind_direction 
         navlog.wind_speed = wind_speed
         navlog.var = variation
         navlog.ias = ias
 
-        # navlog defaults for legs
-        #
-        #route_altitude = self.altitude  # TODO
+        navlog.start_name = self.start.name
 
         navlog.legs = list()
         navlog.leg_dist_acc = 0
@@ -231,9 +249,13 @@ class Route(BaseModel):
             leg.dist_acc = dist_acc
 
             leg.name = checkpoint.name
-            #altitude = checkpoint.altitude if checkpoint.altitiude else route_altitude # TODO
 
-            leg.tas = ias  # TODO
+            if checkpoint.altitude:
+                leg.alt = checkpoint.altitude
+            else:
+                leg.alt = 1500
+
+            leg.tas = checkpoint.true_airspeed(ias, leg.alt)
 
             leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
             leg.th = leg.tt + leg.wca
