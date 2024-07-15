@@ -64,7 +64,7 @@ class Point(CheckPoint):
                 )
         azi = round(geodict['azi1'])
         if azi < 0 :
-            azi = 360 -1
+            azi = 360 - azi
         vector = Vector(
                 name=self.name,
                 true_track=azi,
