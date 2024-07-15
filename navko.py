@@ -62,13 +62,13 @@ class Point(CheckPoint):
                 self.latitude,
                 self.longitude,
                 )
-        azi = round(geodict['azi1'])
+        azi = round(geodict['azi1']) % 360
         if azi < 0 :
             azi = 360 - azi
         vector = Vector(
                 name=self.name,
                 true_track=azi,
-                distance=geodict['s12'],
+                distance=geodict['s12'] / 1852,
                 )
         return vector
 
@@ -214,11 +214,6 @@ class Route(BaseModel):
                 else:
                     checkpoint.true_track = tt
 
-                if checkpoint.altitude:
-                    alt = checkpoint.altitude
-                else:
-                    checkpoint.altitude = alt
-
                 point = checkpoint.get_point(current_point)
                 checkpoint._latitude = point.latitude
                 checkpoint._longitude = point.longitude
@@ -226,6 +221,11 @@ class Route(BaseModel):
                 vector = checkpoint.get_vector(current_point)
                 checkpoint._true_track = vector.true_track
                 checkpoint._distance = vector.distance
+
+            if checkpoint.altitude:
+                alt = checkpoint.altitude
+            else:
+                checkpoint.altitude = alt
 
             current_point = checkpoint
 
