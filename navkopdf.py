@@ -8,7 +8,7 @@ def navlog2pdf(navlog, pdf_path):
     pdf.set_font("Courier", size=12)
 
     chkp_colspan = 5
-    style = FontFace(color=DeviceGray(0), fill_color=DeviceGray(0.93)) 
+    style = FontFace(color=DeviceGray(0), fill_color=DeviceGray(0.94)) 
 
     with pdf.table(line_height=12) as table:
         header = table.row()
@@ -16,8 +16,8 @@ def navlog2pdf(navlog, pdf_path):
 
         header.cell('Leg') ; startrow.cell('0', align='R')
         header.cell('Acc') ; startrow.cell('0', align='R')
-        header.cell('ETO', colspan=2) ; startrow.cell('_', align='C', colspan=2, padding=(0,0,2,0,), style=style )
-        header.cell('ATO', colspan=2) ; startrow.cell(' ', colspan=2, style=style)
+        header.cell('ETO') ; startrow.cell('_', align='C', padding=(0,0,2,0,))
+        header.cell('ATO') ; startrow.cell(' ', style=style)
         header.cell('Checkpoint', colspan=chkp_colspan) ; startrow.cell(navlog.start_name, colspan=chkp_colspan)
         header.cell('Alt') ; startrow.cell('')
         header.cell('MH') ; startrow.cell('')
@@ -34,8 +34,8 @@ def navlog2pdf(navlog, pdf_path):
 
             row.cell(f'{leg.time}', align='R')
             row.cell(f'{leg.time_acc}', align='R')
-            row.cell('', colspan=2, style=style)
-            row.cell('', colspan=2, style=style)
+            row.cell('', style=style)
+            row.cell('', style=style)
             row.cell(f'{leg.name}', colspan=chkp_colspan)
 
             row.cell(f'{leg.alt:>}' if leg.alt != None else '', align='R')
