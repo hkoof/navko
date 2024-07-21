@@ -137,7 +137,8 @@ class NavigationLog:
             if leg.__dict__['tt'] == last_vals['tt']:
                 for attr in ('tt', 'wca', 'th', 'mh', 'gs'):
                     leg.__dict__[attr] = None
-                else:
+            else:
+                for attr in ('tt', 'wca', 'th', 'mh', 'gs'):
                     last_vals[attr] = leg.__dict__[attr]
 
             for attr in ('alt', 'tas'):
