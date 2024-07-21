@@ -157,7 +157,7 @@ class NavigationLog:
         )
         header = f'Leg Acc {"Checkpoint":<30} Alt  MH  TH  WCA TT  TAS  GS Leg Acc\n'
 
-        start  = f'  0   0 {self.start_name:<30}                                0   0\n'
+        start  = f'  0   0 {self.start_name:<30}   -   -   -   -   -   -   -    0   0\n'
 
         line = '-' * (len(header) - 1) + '\n'
         s = title + line + header  + line + start
