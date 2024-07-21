@@ -39,7 +39,7 @@ class CheckPoint(BaseModel):
     def true_airspeed(ias, alt):
         # Rule of thumb:
         # Add about 2% to IAS for every 1000 ft altitude
-        # 
+        #
         return round(ias + 0.02 * alt * ias / 1000)
 
 
@@ -134,7 +134,13 @@ class NavigationLog:
         }
 
         for leg in self.legs:
-            for attr in last_vals.keys():
+            if leg.__dict__['tt'] == last_vals['tt']:
+                for attr in ('tt', 'wca', 'th', 'mh', 'gs'):
+                    leg.__dict__[attr] = None
+                else:
+                    last_vals[attr] = leg.__dict__[attr]
+
+            for attr in ('alt', 'tas'):
                 if leg.__dict__[attr] == last_vals[attr]:
                     leg.__dict__[attr] = None
                 else:
@@ -158,7 +164,7 @@ class NavigationLog:
         for leg in self.legs:
             s = s + str(leg)
 
-        s += line 
+        s += line
         return s
 
 
@@ -255,8 +261,8 @@ class Route(BaseModel):
 
         # navlog global:
         #
-        navlog.title = self.title 
-        navlog.wind_direction = wind_direction 
+        navlog.title = self.title
+        navlog.wind_direction = wind_direction
         navlog.wind_speed = wind_speed
         navlog.var = variation
         navlog.ias = ias
