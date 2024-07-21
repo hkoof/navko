@@ -7,62 +7,47 @@ def navlog2pdf(navlog, pdf_path):
 
     with pdf.table() as table:
         header = table.row()
-        header.cell('Leg')
-        header.cell('Acc')
-        header.cell('ETO')
-        header.cell('ATO')
-        header.cell('Checkpoint', colspan=4)
-        header.cell('Alt')
-        header.cell('MH')
-        header.cell('TH')
-        header.cell('WCA')
-        header.cell('TT')
-        header.cell('TAS')
-        header.cell('GS')
-        header.cell('Leg')
-        header.cell('Acc')
-
         startrow = table.row()
-        startrow.cell('0', align='R')
-        startrow.cell('0', align='R')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell(navlog.start_name, colspan=4)
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('')
-        startrow.cell('0', align='R')
-        startrow.cell('0', align='R')
 
+        header.cell('Leg') ; startrow.cell('0', align='R')
+        header.cell('Acc') ; startrow.cell('0', align='R')
+        header.cell('ETO') ; startrow.cell(' ')
+        header.cell('ATO') ; startrow.cell(' ')
+        header.cell('Checkpoint', colspan=4) ; startrow.cell(navlog.start_name, colspan=4)
+        header.cell('Alt') ; startrow.cell('')
+        header.cell('MH') ; startrow.cell('')
+        header.cell('TH') ; startrow.cell('')
+        header.cell('WCA') ; startrow.cell('')
+        header.cell('TT') ; startrow.cell('')
+        header.cell('TAS') ; startrow.cell('')
+        header.cell('GS') ; startrow.cell('')
+        header.cell('Leg') ; startrow.cell('0', align='R')
+        header.cell('Acc') ; startrow.cell('0', align='R')
 
         for leg in navlog.legs:
             row = table.row()
 
             row.cell(f'{leg.time}', align='R')
-            row.cell(f'{leg.time_acc}')
+            row.cell(f'{leg.time_acc}', align='R')
             row.cell('')
             row.cell('')
-            row.cell(f'{leg.name:<30}', colspan=4)
+            row.cell(f'{leg.name}', colspan=4)
 
-            row.cell(f'{leg.alt:>}' if leg.alt else '')
-            row.cell(f'{leg.mh:>}' if leg.mh else '')
-            row.cell(f'{leg.th:>}' if leg.th else '')
+            row.cell(f'{leg.alt:>}' if leg.alt else '', align='R')
+            row.cell(f'{leg.mh:0>3d}' if leg.mh else '', align='R')
+            row.cell(f'{leg.th:0>3d}' if leg.th else '', align='R')
 
             wca_str = ''
             if leg.wca == 0: wca_str = '0'
             elif leg.wca != None: wca_str = f'{leg.wca:>+d}'
-            row.cell(wca_str)
+            row.cell(wca_str, align='R')
 
-            row.cell(f'{leg.tt:>}' if leg.tt else '')
-            row.cell(f'{leg.tas:>}' if leg.tas else '')
-            row.cell(f'{leg.gs:>}' if leg.gs else '')
+            row.cell(f'{leg.tt:0>3d}' if leg.tt else '', align='R')
+            row.cell(f'{leg.tas:>}' if leg.tas else '', align='R')
+            row.cell(f'{leg.gs:>}' if leg.gs else '', align='R')
 
-            row.cell(f'{leg.dist:>4.0f}')
-            row.cell(f'{leg.dist_acc:>4.0f}')
+            row.cell(f'{leg.dist:>4.0f}', align='R')
+            row.cell(f'{leg.dist_acc:>4.0f}', align='R')
 
     pdf.output(pdf_path)
 
