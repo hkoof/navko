@@ -23,26 +23,26 @@ def navlog2pdf(navlog, pdf_path):
         header.cell('Acc')
 
         startrow = table.row()
-        startrow.cell('0')
-        startrow.cell('0')
+        startrow.cell('0', align='R')
+        startrow.cell('0', align='R')
         startrow.cell(' ')
         startrow.cell(' ')
         startrow.cell(navlog.start_name, colspan=4)
         startrow.cell('')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell(' ')
-        startrow.cell('0')
-        startrow.cell('0')
+        startrow.cell('')
+        startrow.cell('')
+        startrow.cell('')
+        startrow.cell('')
+        startrow.cell('')
+        startrow.cell('')
+        startrow.cell('0', align='R')
+        startrow.cell('0', align='R')
 
 
         for leg in navlog.legs:
             row = table.row()
 
-            row.cell(f'{leg.time}')
+            row.cell(f'{leg.time}', align='R')
             row.cell(f'{leg.time_acc}')
             row.cell('')
             row.cell('')
@@ -51,7 +51,12 @@ def navlog2pdf(navlog, pdf_path):
             row.cell(f'{leg.alt:>}' if leg.alt else '')
             row.cell(f'{leg.mh:>}' if leg.mh else '')
             row.cell(f'{leg.th:>}' if leg.th else '')
-            row.cell(f'{leg.wca:>+d}' if leg.wca else '')
+
+            wca_str = ''
+            if leg.wca == 0: wca_str = '0'
+            elif leg.wca != None: wca_str = f'{leg.wca:>+d}'
+            row.cell(wca_str)
+
             row.cell(f'{leg.tt:>}' if leg.tt else '')
             row.cell(f'{leg.tas:>}' if leg.tas else '')
             row.cell(f'{leg.gs:>}' if leg.gs else '')
