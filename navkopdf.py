@@ -7,27 +7,39 @@ def navlog2pdf(navlog, pdf_path):
     pdf.add_page()
     pdf.set_font("Courier", size=12)
 
-    chkp_colspan = 5
-    style = FontFace(color=DeviceGray(0), fill_color=DeviceGray(0.94)) 
+    title1  = f'"{navlog.title}"'
+    title2  = (
+        f'IAS: {navlog.ias:<14}'
+        f'Wind: {navlog.wind_direction}/{navlog.wind_speed} kt {"":<14}'
+        f'Variation: {navlog.var:<+14}'
+        '\n'
+    )
 
-    with pdf.table(line_height=12) as table:
-        header = table.row()
+    chkp_colspan = 5
+    style = FontFace(color=DeviceGray(0), fill_color=DeviceGray(0.90)) 
+
+    with pdf.table(num_heading_rows=2, line_height=10) as table:
+        titlerow = table.row()
+        headerrow = table.row()
         startrow = table.row()
 
-        header.cell('Leg') ; startrow.cell('0', align='R')
-        header.cell('Acc') ; startrow.cell('0', align='R')
-        header.cell('ETO') ; startrow.cell('--', align='C')
-        header.cell('ATO') ; startrow.cell(' ', style=style)
-        header.cell('Checkpoint', colspan=chkp_colspan) ; startrow.cell(navlog.start_name, colspan=chkp_colspan)
-        header.cell('Alt') ; startrow.cell('--', align='C')
-        header.cell('MH') ; startrow.cell('--', align='C')
-        header.cell('TH') ; startrow.cell('--', align='C')
-        header.cell('WCA') ; startrow.cell('--', align='C')
-        header.cell('TT') ; startrow.cell('--', align='C')
-        header.cell('TAS') ; startrow.cell('--', align='C')
-        header.cell('GS') ; startrow.cell('--', align='C')
-        header.cell('Leg') ; startrow.cell('0', align='R')
-        header.cell('Acc') ; startrow.cell('0', align='R')
+        titlerow.cell(title1, colspan=4, align='C', style=FontFace(size_pt=10))
+        titlerow.cell(title2, colspan=14, align='C', style=FontFace(size_pt=10))
+
+        headerrow.cell('Leg') ; startrow.cell('0', align='R')
+        headerrow.cell('Acc') ; startrow.cell('0', align='R')
+        headerrow.cell('ETO') ; startrow.cell('--', align='C')
+        headerrow.cell('ATO') ; startrow.cell(' ', style=style)
+        headerrow.cell('Checkpoint', colspan=chkp_colspan) ; startrow.cell(navlog.start_name, colspan=chkp_colspan)
+        headerrow.cell('Alt') ; startrow.cell('--', align='C')
+        headerrow.cell('MH') ; startrow.cell('--', align='C')
+        headerrow.cell('TH') ; startrow.cell('--', align='C')
+        headerrow.cell('WCA') ; startrow.cell('--', align='C')
+        headerrow.cell('TT') ; startrow.cell('--', align='C')
+        headerrow.cell('TAS') ; startrow.cell('--', align='C')
+        headerrow.cell('GS') ; startrow.cell('--', align='C')
+        headerrow.cell('Leg') ; startrow.cell('0', align='R')
+        headerrow.cell('Acc') ; startrow.cell('0', align='R')
 
         for leg in navlog.legs:
             row = table.row()
