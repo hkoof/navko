@@ -4,7 +4,6 @@
     name: EHDR ARP
     latitude: 53.11806
     longitude: 6.12917 
-    altitude: 1000
   checkpoints:
     - name: Zuidwolde
       latitude: 53.258

@@ -22,6 +22,23 @@ def navlog2pdf(navlog, pdf_path):
         header.cell('Leg')
         header.cell('Acc')
 
+        startrow = table.row()
+        startrow.cell('0')
+        startrow.cell('0')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell(navlog.start_name, colspan=4)
+        startrow.cell('')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell(' ')
+        startrow.cell('0')
+        startrow.cell('0')
+
+
         for leg in navlog.legs:
             row = table.row()
 

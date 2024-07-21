@@ -7,3 +7,5 @@ validation route.yaml
 - route has optional attribute "fuel_consumption"
 - checkpoints all have a "name" and "distance"
 
+https://py-pdf.github.io/fpdf2/Tables.html
+

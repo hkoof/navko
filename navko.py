@@ -348,10 +348,15 @@ def main():
             help='Dump route to geojson file',
             )
     parser.add_argument(
-            '-n',
-            '--navigation-log',
+            '-a',
+            '--navlog-stdout',
             action='store_true',
-            help='Create navigation log',
+            help='Print navigation log to stdout',
+            )
+    parser.add_argument(
+            '-p',
+            '---navlog-pdf',
+            help='Write navigation log to PDF file',
             )
     parser.add_argument(
             '-s',
@@ -392,13 +397,17 @@ def main():
             for route in routes:
                 print(route.geojson(), file=output)
 
-    if args.navigation_log:
+    if args.navlog_stdout or args.navlog_pdf:
         for route in routes:
             wind_dir, wind_spd = args.wind if args.wind else (0, 0)
             navlog = route.navigation_log(args.ias, wind_dir, wind_spd, 2)
             if args.sparse:
                 navlog.make_sparse()
-            print(navlog)
+            if args.navlog_stdout:
+                print(navlog)
+            if args.navlog_pdf:
+                from navkopdf import navlog2pdf
+                navlog2pdf(navlog, args.navlog_pdf)
 
 
 if __name__ == "__main__":
