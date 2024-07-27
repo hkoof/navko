@@ -303,7 +303,7 @@ class Route(BaseModel):
             leg.th = leg.tt + leg.wca
             leg.mh = leg.th - navlog.var
 
-            leg.time = math.floor(60 * leg.dist / leg.tas)
+            leg.time = math.floor(60 * leg.dist / leg.gs)
             time_acc += leg.time
             leg.time_acc = time_acc
 
