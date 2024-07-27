@@ -16,6 +16,8 @@ from geographiclib.geodesic import Geodesic
 
 # Base class for different kind of checkpoints
 #
+
+
 class CheckPoint(BaseModel):
     name: str
     altitude: int = Field(default=None)
@@ -57,19 +59,19 @@ class Point(CheckPoint):
              Vector
         '''
         geodict = Geodesic.WGS84.Inverse(
-                origin.get_latitude(),
-                origin.get_longitude(),
-                self.latitude,
-                self.longitude,
-                )
+            origin.get_latitude(),
+            origin.get_longitude(),
+            self.latitude,
+            self.longitude,
+        )
         azi = round(geodict['azi1']) % 360
-        if azi < 0 :
+        if azi < 0:
             azi = 360 - azi
         vector = Vector(
-                name=self.name,
-                true_track=azi,
-                distance=geodict['s12'] / 1852,
-                )
+            name=self.name,
+            true_track=azi,
+            distance=geodict['s12'] / 1852,
+        )
         return vector
 
     def get_latitude(self): return self.latitude
@@ -96,16 +98,16 @@ class Vector(CheckPoint):
     def get_point(self, origin):
         distance_meters = self.distance * 1852
         geodict = Geodesic.WGS84.Direct(
-                origin.get_latitude(),
-                origin.get_longitude(),
-                self.true_track,
-                distance_meters,
-            )
+            origin.get_latitude(),
+            origin.get_longitude(),
+            self.true_track,
+            distance_meters,
+        )
         point = Point(
-                name=self.name,
-                latitude=geodict['lat2'],
-                longitude=geodict['lon2'],
-            )
+            name=self.name,
+            latitude=geodict['lat2'],
+            longitude=geodict['lon2'],
+        )
         return point
 
     def get_latitude(self): return self._latitude
@@ -116,7 +118,9 @@ class Vector(CheckPoint):
     def __str__(self):
         if not self.true_track:
             return ''
-        return f'{self.name}: {self.true_track}\N{DEGREE SIGN} {self.distance:.1f} NM'
+        return (f'{self.name}: {self.true_track}\N{DEGREE SIGN}'
+                '{self.distance:.1f} NM'
+                )
 
 
 class NavigationLog:
@@ -148,7 +152,7 @@ class NavigationLog:
                     last_vals[attr] = leg.__dict__[attr]
 
     def __str__(self):
-        title  = (
+        title = (
             f'{self.title:<14}\n'
             f'IAS: {self.ias:<14}'
             f'Wind: {self.wind_direction}/{self.wind_speed} kt {"":<14}'
@@ -157,10 +161,10 @@ class NavigationLog:
         )
         header = f'Leg Acc {"Checkpoint":<30} Alt  MH  TH  WCA TT  TAS  GS Leg Acc\n'
 
-        start  = f'  0   0 {self.start_name:<30}   -   -   -   -   -   -   -    0   0\n'
+        start = f'  0   0 {self.start_name:<30}   -   -   -   -   -   -   -    0   0\n'
 
         line = '-' * (len(header) - 1) + '\n'
-        s = title + line + header  + line + start
+        s = title + line + header + line + start
 
         for leg in self.legs:
             s = s + str(leg)
@@ -191,22 +195,25 @@ class Leg:
 
         return s
 
+
 class Route(BaseModel):
     title: str
     start: Point
     checkpoints: list[
-            Annotated[
-                Union[
-                    Annotated[Point, Tag('point')],
-                    Annotated[Vector, Tag('vector')],
-                ],
-                Discriminator(lambda v: 'point' if v.get('latitude') else 'vector'),
-            ]
+        Annotated[
+            Union[
+                Annotated[Point, Tag('point')],
+                Annotated[Vector, Tag('vector')],
+            ],
+            Discriminator(lambda v: 'point' if v.get(
+                'latitude') else 'vector'),
         ]
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        tt = self.checkpoints[0]  # assuming at least one, raising exception is correct
+        # assuming at least one, raising exception is correct
+        tt = self.checkpoints[0]
         alt = self.checkpoints[0].altitude
         if alt == None:
             alt = 1500
@@ -241,21 +248,21 @@ class Route(BaseModel):
         tt = math.radians(true_track)
         wd = math.radians(wind_direction)
 
-        wca = math.asin( (wind_speed / true_airspeed) * math.sin(wd - tt) )
+        wca = math.asin((wind_speed / true_airspeed) * math.sin(wd - tt))
         wind_correction_angle = math.degrees(wca)
 
         ground_speed = math.sqrt(
-                true_airspeed**2 + wind_speed**2 -
-                (
-                    2 * true_airspeed * wind_speed * math.cos(tt - wd + wca)
-                )
-             )
+            true_airspeed**2 + wind_speed**2 -
+            (
+                2 * true_airspeed * wind_speed * math.cos(tt - wd + wca)
+            )
+        )
 
         wca_deg = round(math.degrees(wca))
         if wca_deg > 180:
             wca_deg = 360 - wca_deg
 
-        return ( wca_deg, round(ground_speed), )
+        return (wca_deg, round(ground_speed), )
 
     def navigation_log(self, ias, wind_direction=0, wind_speed=0, variation=0):
         navlog = NavigationLog()
@@ -291,7 +298,8 @@ class Route(BaseModel):
             leg.alt = checkpoint.altitude
             leg.tas = checkpoint.true_airspeed(ias, leg.alt)
 
-            leg.wca, leg.gs = self.e6b(leg.tt, leg.tas, wind_direction, wind_speed)
+            leg.wca, leg.gs = self.e6b(
+                leg.tt, leg.tas, wind_direction, wind_speed)
             leg.th = leg.tt + leg.wca
             leg.mh = leg.th - navlog.var
 
@@ -304,7 +312,6 @@ class Route(BaseModel):
             previous_leg = leg
 
         return navlog
-
 
     def geojson(self):
         def append_line_feature(begin, end):
@@ -330,64 +337,67 @@ class Route(BaseModel):
             current_point = checkpoint
 
         append_line_feature(leg_begin, current_point)
-        features.append(gj.Feature(geometry=gj.Point( (self.start.longitude, self.start.latitude,) )))
+        features.append(gj.Feature(geometry=gj.Point(
+            (self.start.longitude, self.start.latitude,))))
 
         for point in points:
             feature = gj.Feature(
-                    geometry=gj.Point((point.get_longitude(), point.get_latitude(),)),
-                    properties = {
-                        'name': point.name,
-                    }
-                )
+                geometry=gj.Point(
+                    (point.get_longitude(), point.get_latitude(),)),
+                properties={
+                    'name': point.name,
+                }
+            )
             features.append(feature)
 
-        feature_collection = gj.FeatureCollection( features )
+        feature_collection = gj.FeatureCollection(features)
         return gj.dumps(feature_collection)
+
 
 def main():
     parser = argparse.ArgumentParser(
-                    prog = 'navko',
-                    description = 'E6B deluxe',
-                    )
+        prog='navko',
+        description='E6B deluxe',
+    )
     parser.add_argument('route_filename')
     parser.add_argument(
-            '--geojson',
-            help='Dump route to geojson file',
-            )
+        '--geojson',
+        help='Dump route to geojson file',
+    )
     parser.add_argument(
-            '-a',
-            '--navlog-stdout',
-            action='store_true',
-            help='Print navigation log to stdout',
-            )
+        '-a',
+        '--navlog-stdout',
+        action='store_true',
+        help='Print navigation log to stdout',
+    )
     parser.add_argument(
-            '-p',
-            '---navlog-pdf',
-            help='Write navigation log to PDF file',
-            )
+        '-p',
+        '---navlog-pdf',
+        help='Write navigation log to PDF file',
+    )
     parser.add_argument(
-            '-s',
-            '--ias',
-            '--indicated-airspeed',
-            type=int,
-            default=100,
-            help='Specify indicated air speed',
-            )
+        '-s',
+        '--ias',
+        '--indicated-airspeed',
+        type=int,
+        default=100,
+        help='Specify indicated air speed',
+    )
     parser.add_argument(
-            '-w',
-            '--wind',
-            nargs=2,
-            type=int,
-            default=(0, 0),
-            metavar=('DIRECTION', 'SPEED'),
-            help='Specify wind vector',
-            )
+        '-w',
+        '--wind',
+        nargs=2,
+        type=int,
+        default=(0, 0),
+        metavar=('DIRECTION', 'SPEED'),
+        help='Specify wind vector',
+    )
     parser.add_argument(
-            '-r',
-            '--sparse',
-            action='store_true',
-            help='Skip leg attribute values that are the same as the previous leg',
-            )
+        '-r',
+        '--sparse',
+        action='store_true',
+        help='Skip leg attribute values that are the same as the previous leg',
+    )
     args = parser.parse_args()
 
     routes_data = yaml.load(open(args.route_filename), Loader=yaml.BaseLoader)
