@@ -92,7 +92,7 @@ class Point(CheckPoint):
 
 
 class Vector(CheckPoint):
-    true_track: Annotated[int, Field(gt=0, lt=360, default=None)]
+    true_track: Annotated[int, Field(gt=0, le=360, default=None)]
     distance: float
 
     def get_point(self, origin):
