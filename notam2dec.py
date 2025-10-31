@@ -11,16 +11,8 @@ pattern_coord = pattern_lat + ' ' + pattern_lon
 
 re_coord = re.compile(pattern_coord)
 
-def notam2dec(notam_coordinates):
-
-    print("DBG: coord: ", notam_coordinates)
-
-    m_coord = re.match(re_coord, notam_coordinates)
-    if m_coord == None:
-        print(f'notam format error: {notam_coordinates}')
-        sys.exit(2)
-
-    grp_coord = m_coord.groups()
+def notam2dec(notam_coordinate_re_match):
+    grp_coord = notam_coordinate_re_match.groups()
     lat_dec = (1 if grp_coord[3] == 'N' else -1) * (
                   int(grp_coord[0]) +
                   int(grp_coord[1]) / 60.0 +
@@ -37,27 +29,39 @@ def notam2dec(notam_coordinates):
 def main():
     parser = argparse.ArgumentParser(
         prog='notam_coordinates',
-        description='Convert notam coordinates',
+        description='Convert notam coordinates to decimal coordinates',
     )
-    parser.add_argument('-c', '--coordinates', nargs=2)
-    parser.add_argument('-f', '--file')
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-c', nargs=2, metavar=('LONGITUDE', 'LATITUDE'))
+    group.add_argument('-f', metavar='INPUT_FILE')
+
     parser.add_argument(
         '--geojson',
-        help='Write to geojson file',
+        action='store_true',
+        help='Write to geojson file (default stdout)',
     )
     args = parser.parse_args()
 
-    if args.coordinates:
-        dec_coords = notam2dec(args.coordinates[0] + ' ' + args.coordinates[1])
-        print(dec_coords)
-        sys.exit(0)
+    notam_coords = list()
+    if args.c:
+        m_coord = re.match(re_coord, args.c[0] + ' ' + args.c[1])
+        if m_coord == None:
+            print(f'notam format error: {notam_coordinates}')
+            sys.exit(2)
+
+        dec_coords = notam2dec(m_coord)
+        notam_coords.append(dec_coords)
+    else: # required mutual exclusive args
+        with open(args.file) as fd:
+            content = fd.read().replace('\n', ' ')
+        #for match in findall() # fixme
 
     if args.geojson:
-        with open(args.geojson, 'w') as output:
-            for route in routes:
-                print(route.geojson(), file=output)
+        pass
 
     notam_coordinates = list()
+    print(notam_coords)
 
 
 if __name__ == "__main__":
