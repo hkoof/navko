@@ -189,8 +189,8 @@ class Leg:
         s += f'{self.tas:>4}' if self.tas else f'{"":>4}'
         s += f'{self.gs:>4}' if self.gs else f'{"":>4}'
 
-        s += f'{self.dist:>4.0f}'
-        s += f'{self.dist_acc:>4.0f}'
+        s += f'{self.time:>4.0f}'
+        s += f'{self.time_acc:>4.0f}'
         s += '\n'
 
         return s

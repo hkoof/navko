@@ -1,5 +1,5 @@
 from fpdf import FPDF
-from fpdf.fonts import FontFace
+from fpdf import FontFace
 from fpdf.drawing import DeviceGray, DeviceRGB
 
 def navlog2pdf(navlog, pdf_path):
@@ -66,8 +66,8 @@ def navlog2pdf(navlog, pdf_path):
             row.cell(f'{leg.tas:>}' if leg.tas != None else '', align='R', colspan=colspan)
             row.cell(f'{leg.gs:>}' if leg.gs != None else '', align='R', colspan=colspan)
 
-            row.cell(f'{leg.dist:>4.0f}', align='R', colspan=colspan)
-            row.cell(f'{leg.dist_acc:>4.0f}', align='R', colspan=colspan)
+            row.cell(f'{leg.time:>4.0f}', align='R', colspan=colspan)
+            row.cell(f'{leg.time_acc:>4.0f}', align='R', colspan=colspan)
             row.cell('', colspan=notes_colspan)
 
 
