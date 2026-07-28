@@ -28,7 +28,7 @@ def navlog2pdf(navlog, pdf_path):
         titlerow.cell(title1, colspan=10, align='C', style=FontFace(size_pt=10))
         titlerow.cell(title2, colspan=54, align='C', style=FontFace(size_pt=10))
 
-        headerrow.cell('Leg', align='C', colspan=2) ; startrow.cell('0', align='R', colspan=2)
+        headerrow.cell('Min', align='C', colspan=2) ; startrow.cell('0', align='R', colspan=2)
         headerrow.cell('Acc', align='C', colspan=2) ; startrow.cell('0', align='R', colspan=2)
         headerrow.cell('ETO', align='C', colspan=colspan) ; startrow.cell('--', align='C', colspan=colspan)
         headerrow.cell('ATO', align='C', colspan=colspan) ; startrow.cell(' ', style=style, colspan=colspan)
@@ -40,7 +40,7 @@ def navlog2pdf(navlog, pdf_path):
         headerrow.cell('TT', align='C', colspan=colspan) ; startrow.cell('--', align='C', colspan=colspan)
         headerrow.cell('TAS', align='C', colspan=colspan) ; startrow.cell('--', align='C', colspan=colspan)
         headerrow.cell('GS', align='C', colspan=colspan) ; startrow.cell('--', align='C', colspan=colspan)
-        headerrow.cell('Leg', align='C', colspan=colspan) ; startrow.cell('0', align='R', colspan=colspan)
+        headerrow.cell('Dist', align='C', colspan=colspan) ; startrow.cell('0', align='R', colspan=colspan)
         headerrow.cell('Acc', align='C', colspan=colspan) ; startrow.cell('0', align='R', colspan=colspan)
         headerrow.cell('Notes', colspan=notes_colspan) ; startrow.cell('', colspan=notes_colspan)
 
@@ -66,8 +66,8 @@ def navlog2pdf(navlog, pdf_path):
             row.cell(f'{leg.tas:>}' if leg.tas != None else '', align='R', colspan=colspan)
             row.cell(f'{leg.gs:>}' if leg.gs != None else '', align='R', colspan=colspan)
 
-            row.cell(f'{leg.time:>4.0f}', align='R', colspan=colspan)
-            row.cell(f'{leg.time_acc:>4.0f}', align='R', colspan=colspan)
+            row.cell(f'{leg.dist:>4.0f}', align='R', colspan=colspan)
+            row.cell(f'{leg.dist_acc:>4.0f}', align='R', colspan=colspan)
             row.cell('', colspan=notes_colspan)
 
 

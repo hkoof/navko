@@ -159,7 +159,7 @@ class NavigationLog:
             f'Variation: {self.var:<+14}'
             '\n'
         )
-        header = f'Leg Acc {"Checkpoint":<30} Alt  MH  TH  WCA TT  TAS  GS Leg Acc\n'
+        header = f'Min Acc {"Checkpoint":<30} Alt  MH  TH  WCA TT  TAS  GS  NM Acc\n'
 
         start = f'  0   0 {self.start_name:<30}   -   -   -   -   -   -   -    0   0\n'
 
@@ -189,8 +189,8 @@ class Leg:
         s += f'{self.tas:>4}' if self.tas else f'{"":>4}'
         s += f'{self.gs:>4}' if self.gs else f'{"":>4}'
 
-        s += f'{self.time:>4.0f}'
-        s += f'{self.time_acc:>4.0f}'
+        s += f'{self.dist:>4.0f}'
+        s += f'{self.dist_acc:>4.0f}'
         s += '\n'
 
         return s
@@ -303,9 +303,10 @@ class Route(BaseModel):
             leg.th = leg.tt + leg.wca
             leg.mh = leg.th - navlog.var
 
-            leg.time = math.floor(60 * leg.dist / leg.gs)
-            time_acc += leg.time
-            leg.time_acc = time_acc
+            time = 60 * leg.dist / leg.gs
+            leg.time = math.floor(time)
+            time_acc += time
+            leg.time_acc = math.floor(time_acc)
 
             navlog.legs.append(leg)
             current_point = checkpoint
